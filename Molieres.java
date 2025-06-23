@@ -106,9 +106,10 @@ public class Molieres extends AdvancedRobot {
 		scan();
 	}
 
-	/**
-	 * onHitRobot:  Set him as our new target
-	 */
+    public void onHitByBullet(HitByBulletEvent e) {
+    executarDefesa();  
+    }
+
 	public void onHitRobot(HitRobotEvent e) {
 		// Only print if he's not already our target.
 		if (trackName != null && !trackName.equals(e.getName())) {
