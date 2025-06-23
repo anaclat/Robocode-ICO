@@ -25,11 +25,19 @@ Este repositório contém o desenvolvimento do robô **Molieres**, criado como p
 
 ## 🧠 Estratégia do Robô Molieres
 
-O robô **Molieres** adota a seguinte estratégia:
-- **Movimentação aleatória** para dificultar ser atingido.
-- **Radar contínuo** para rastreamento de inimigos.
-- **Sistema de mira básico** que ajusta o tiro com base na posição do oponente.
-- **Força do tiro** adaptada à distância.
+O robô Molieres adota uma estratégia de combate dinâmica e adaptativa para maximizar sua sobrevivência e precisão de ataque:
+
+🔄 Radar inteligente: rastreia continuamente o inimigo mais próximo com alta precisão, priorizando o adversário mais recente e mais próximo.
+
+🏃‍♂️ Movimentação lateral com evasivas: se move lateralmente ao inimigo e inverte a direção quando detecta tiros ou colisões, dificultando ser atingido.
+
+🎯 Mira com previsão de movimento: calcula a posição futura do inimigo com base em velocidade e direção, ajustando o ângulo do canhão para disparos mais precisos.
+
+💥 Tiro adaptativo por distância: calibra a força do tiro de acordo com a distância do oponente, otimizando dano e velocidade do projétil.
+
+🛡️ Defesa reativa: ao detectar perda de energia do inimigo (indício de disparo) ou ao ser atingido, realiza manobras evasivas para escapar da linha de fogo.
+
+🧠 Memória de inimigos: armazena informações dos robôs avistados (nome, energia, distância e tempo) e limpa os dados de inimigos inativos.
 
 ## 💡 Controle de Versão com Git
 
