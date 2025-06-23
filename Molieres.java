@@ -10,14 +10,15 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Molieres extends AdvancedRobot {
-	private double energiaAnterior = 100;
+
+    private int moveDirection = 1;
+    private double energiaAnterior = 100;
     private long ultimoTickDefesa = 0;
 
-	int count = 0; 
-	double gunTurnAmt;
-	String trackName; 
+    private Map<String, Inimigo> inimigos = new HashMap<>();
+    private String alvoAtual = null;
+    private static final double DISTANCIA_MAX_FOGO = 350.0;
 
-	
 	public void run() {
 		
 		setBodyColor(new Color(128, 128, 50));
