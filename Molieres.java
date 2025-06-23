@@ -38,6 +38,7 @@ public class Molieres extends AdvancedRobot {
         }
     }
 
+    
     @Override 
     public void onScannedRobot(ScannedRobotEvent e) {
         String nome = e.getName();
@@ -106,7 +107,61 @@ public class Molieres extends AdvancedRobot {
     @Override
     public void onHitByBullet(HitByBulletEvent e) {
         executarDefesa(); 
+
     }
+
+    @Override
+    public void onHitRobot(HitRobotEvent e) {
+        if (trackName != null && !trackName.equals(e.getName())) {
+            out.println("Tracking " + e.getName() + " due to collision");
+        }
+        trackName = e.getName();
+        
+        gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
+        turnGunRight(gunTurnAmt);
+        fire(3);
+        back(50);
+    }
+
+    @Override
+    public void onHitWall(HitWallEvent e) { 
+        moveDirection *= -1; 
+        setBack(50);
+    }
+
+    private void executarDefesa() {
+        if (getTime() - ultimoTickDefesa < 20) return;
+        ultimoTickDefesa = getTime();
+
+        moveDirection *= -1;
+        double angulo = 90 + (Math.random() * 90); 
+        setTurnRight(angulo * moveDirection); 
+        setAhead(150 + Math.random() * 100); 
+    }
+
+    @Override
+    public void onWin(WinEvent e) {
+        for (int i = 0; i < 50; i++) {
+            turnRight(30);
+            turnLeft(30);
+        }
+
+    }
+    
+    private double calcularFirePowerAdaptativo(double distancia) { 
+        distancia = Math.min(distancia, DISTANCIA_MAX_FOGO);
+        double power = 4.0 - (2.9 * (distancia / DISTANCIA_MAX_FOGO));
+        return Math.max(0.1, Math.min(3.0, power));
+    }
+
+    private void escanearInimigoMaisProximo() {
+        double menorDistancia = Double.MAX_VALUE;
+        String maisProximo = null;
+
+        Iterator<Map.Entry<String, Inimigo>> it = inimigos.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Inimigo> entry = it.next();
+            Inimigo i = entry.getValue();
 
     @Override
     public void onHitRobot(HitRobotEvent e) {
@@ -161,6 +216,7 @@ public class Molieres extends AdvancedRobot {
             Map.Entry<String, Inimigo> entry = it.next();
             Inimigo i = entry.getValue();
 
+
             if (getTime() - i.ultimoVisto > 10) { 
                 it.remove();
                 continue;
@@ -179,7 +235,8 @@ public class Molieres extends AdvancedRobot {
         while (angle < -180) angle += 360;
         return angle;
     }
-}
+ }
+
 
 class Inimigo {
     String nome; 
