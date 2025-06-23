@@ -60,8 +60,14 @@ public class Molieres extends AdvancedRobot {
 	 */
 	public void onScannedRobot(ScannedRobotEvent e) {
 
-		// If we have a target, and this isn't it, return immediately
-		// so we can get more ScannedRobotEvents.
+
+	    // Detecta tiro e executa evasiva
+        double perdaEnergia = energiaAnterior - e.getEnergy();
+        if (perdaEnergia > 0 && perdaEnergia <= 3.0) {
+            executarDefesa();
+        }
+        energiaAnterior = e.getEnergy();
+
 		if (trackName != null && !e.getName().equals(trackName)) {
 			return;
 		}
