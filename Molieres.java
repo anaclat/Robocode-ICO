@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Molieres extends AdvancedRobot {
+	private double energiaAnterior = 100;
+    private long ultimoTickDefesa = 0;
+
 	int count = 0; // Keeps track of how long we've
 	// been searching for our target
 	double gunTurnAmt; // How much to turn our gun when searching
