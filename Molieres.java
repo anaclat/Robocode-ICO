@@ -21,17 +21,10 @@ public class Molieres extends AdvancedRobot {
 
 	public void run() {
 		
-		setBodyColor(new Color(128, 128, 50));
-		setGunColor(new Color(50, 50, 20));
-		setRadarColor(new Color(200, 200, 70));
-		setScanColor(Color.white);
-		setBulletColor(Color.blue);
-
-		
-		trackName = null; 
-		setAdjustGunForRobotTurn(true); 
-		gunTurnAmt = 10; 
-
+		setColors(new Color(128, 0, 128), Color.DARK_GRAY, Color.BLACK); // Roxo, cinza e preto
+        setAdjustRadarForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);
+        setAdjustGunForRobotTurn(true);
 		
 		while (true) {
 			
