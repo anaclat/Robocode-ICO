@@ -13,48 +13,40 @@ public class Molieres extends AdvancedRobot {
     private int moveDirection = 1;
     private double energiaAnterior = 100;
     private long ultimoTickDefesa = 0;
+  
+    private Map<String, Inimigo> inimigos = new HashMap<>();
+    private String alvoAtual = null;
+    private static final double DISTANCIA_MAX_FOGO = 350.0;
 
-    private Map<String, Inimigo> inimigos = new HashMap<>(); 
-    private String alvoAtual = null; 
-    private static final double DISTANCIA_MAX_FOGO = 400.0; 
-    private String trackName = null; 
-    private double gunTurnAmt; 
+	public void run() {
+		
+		setColors(new Color(128, 0, 128), Color.DARK_GRAY, Color.BLACK); // Roxo, cinza e preto
+        setAdjustRadarForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);
+        setAdjustGunForRobotTurn(true);
+		
+	while (true) {
+    escanearInimigoMaisProximo();
 
-    public void run() {
-        setBodyColor(new Color(128, 128, 50));
-        setGunColor(new Color(50, 50, 20));
-        setRadarColor(new Color(200, 200, 70));
-        setScanColor(Color.white);
-        setBulletColor(Color.blue);
-
-        setAdjustGunForRobotTurn(true); 
-        setAdjustRadarForGunTurn(true); 
-
-        while (true) {
-            if (alvoAtual == null || !inimigos.containsKey(alvoAtual) || (inimigos.get(alvoAtual) != null && getTime() - inimigos.get(alvoAtual).ultimoVisto > 15)) {
-                setTurnRadarRight(360);
-            }
-            execute(); 
+    if (alvoAtual != null) {
+        Inimigo alvo = inimigos.get(alvoAtual);
+        if (alvo == null || getTime() - alvo.ultimoVisto > 5) {
+            alvoAtual = null;
+        } else {
+            double radarTurn = getHeadingRadians() + alvo.anguloRelativo - getRadarHeadingRadians();
+            setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn) * 2);
         }
+    } else {
+        setTurnRadarRight(360);
     }
 
-    
-    @Override 
-    public void onScannedRobot(ScannedRobotEvent e) {
-        String nome = e.getName();
-        Inimigo inimigo = inimigos.getOrDefault(nome, new Inimigo());
-        inimigo.atualizar(e);
-        inimigos.put(nome, inimigo);
-        escanearInimigoMaisProximo();
+    execute();
+}
+	
+	public void onScannedRobot(ScannedRobotEvent e) {
 
-        if (!e.getName().equals(alvoAtual)) {
-            setTurnRadarRight(Utils.normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading())));
-            return;
-        } else {
-            setTurnRadarRight(Utils.normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading())));
-        }
 
-        // --- Detecção de Tiro e Evasiva Reativa ---
+	    // Detecta tiro e executa evasiva
         double perdaEnergia = energiaAnterior - e.getEnergy();
         if (perdaEnergia > 0 && perdaEnergia <= 3.0) { 
             executarDefesa();
