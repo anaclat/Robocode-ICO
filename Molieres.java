@@ -11,7 +11,6 @@ public class Molieres extends AdvancedRobot {
     private int moveDirection = 1;
     private double energiaAnterior = 100;
     private long ultimoTickDefesa = 0;
-    private double moveDirection = 1;
     private String trackName;
     private Map<String, Inimigo> inimigos = new HashMap<>();
     private String alvoAtual = null;
