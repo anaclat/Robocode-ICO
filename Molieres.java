@@ -23,18 +23,15 @@ public class Molieres extends AdvancedRobot {
 
 
     public void run() {
-        //  configurações de cor 
         setBodyColor(new Color(128, 128, 50));
         setGunColor(new Color(50, 50, 20));
         setRadarColor(new Color(200, 200, 70));
         setScanColor(Color.white);
         setBulletColor(Color.blue);
 
-    
         setAdjustGunForRobotTurn(true); 
         setAdjustRadarForGunTurn(true); 
         
-       
         while (true) {
             if (alvoAtual == null || !inimigos.containsKey(alvoAtual) || (inimigos.get(alvoAtual) != null && getTime() - inimigos.get(alvoAtual).ultimoVisto > 15)) {
                 setTurnRadarRight(360);
@@ -42,17 +39,35 @@ public class Molieres extends AdvancedRobot {
             execute(); 
         }
     }
-
     
-
     @Override 
     public void onScannedRobot(ScannedRobotEvent e) {
-      
+        String nome = e.getName();
+        Inimigo inimigo = inimigos.getOrDefault(nome, new Inimigo());
+        inimigo.atualizar(e);
+        inimigos.put(nome, inimigo);
+        escanearInimigoMaisProximo();
+
+        if (!e.getName().equals(alvoAtual)) {
+            setTurnRadarRight(Utils.normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading())));
+            return;
+        } else {
+            setTurnRadarRight(Utils.normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading())));
+        }
+
+        double perdaEnergia = energiaAnterior - e.getEnergy();
+        if (perdaEnergia > 0 && perdaEnergia <= 3.0) {
+            // Lógica de defesa virá em um commit futuro
+        }
+        energiaAnterior = e.getEnergy();
+
+        double anguloMovimento = Utils.normalRelativeAngleDegrees(e.getBearing() + 90 - (15 * moveDirection));
+        setTurnRight(anguloMovimento);
+        setAhead(100 * moveDirection);
     }
 
     @Override
     public void onHitByBullet(HitByBulletEvent e) {
-       
         executarDefesa(); 
     }
 
@@ -63,7 +78,6 @@ public class Molieres extends AdvancedRobot {
         }
         trackName = e.getName();
         
-       
         gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
         turnGunRight(gunTurnAmt);
         fire(3);
@@ -83,7 +97,8 @@ public class Molieres extends AdvancedRobot {
         moveDirection *= -1;
         double angulo = 60 + Math.random() * 60; 
         setTurnRight(angulo);
-        setAhead(120 + Math.random() * 80);}
+        setAhead(120 + Math.random() * 80);
+    }
 
     @Override
     public void onWin(WinEvent e) {
@@ -92,18 +107,34 @@ public class Molieres extends AdvancedRobot {
             turnLeft(30);
         }
     }
-
-   
+    
     private double calcularFirePowerAdaptativo(double distancia) { 
         return 0.0; 
     }
 
     private void escanearInimigoMaisProximo() {
-        
+        double menorDistancia = Double.MAX_VALUE;
+        String maisProximo = null;
+
+        Iterator<Map.Entry<String, Inimigo>> it = inimigos.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Inimigo> entry = it.next();
+            Inimigo i = entry.getValue();
+
+            if (getTime() - i.ultimoVisto > 10) { 
+                it.remove();
+                continue;
+            }
+
+            if (i.distancia < menorDistancia) {
+                menorDistancia = i.distancia;
+                maisProximo = entry.getKey();
+            }
+        }
+        alvoAtual = maisProximo;
     }
 } 
 
-// --- DEFINIÇÃO DA CLASSE INIMIGO ---
 class Inimigo {
     String nome; 
     double distancia; 
@@ -113,7 +144,7 @@ class Inimigo {
     long ultimoVisto; 
 
     public Inimigo() {
-       
+        
     }
 
     public void atualizar(ScannedRobotEvent e) {
