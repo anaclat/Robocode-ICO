@@ -26,26 +26,23 @@ public class Molieres extends AdvancedRobot {
         setAdjustRadarForGunTurn(true);
         setAdjustGunForRobotTurn(true);
 		
-		while (true) {
-			
-			turnGunRight(gunTurnAmt);
-			
-			count++;
-			
-			if (count > 2) {
-				gunTurnAmt = -10;
-			}
-			
-			if (count > 5) {
-				gunTurnAmt = 10;
-			}
-			
-			if (count > 11) {
-				trackName = null;
-			}
-		}
-	}
+	while (true) {
+    escanearInimigoMaisProximo();
 
+    if (alvoAtual != null) {
+        Inimigo alvo = inimigos.get(alvoAtual);
+        if (alvo == null || getTime() - alvo.ultimoVisto > 5) {
+            alvoAtual = null;
+        } else {
+            double radarTurn = getHeadingRadians() + alvo.anguloRelativo - getRadarHeadingRadians();
+            setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn) * 2);
+        }
+    } else {
+        setTurnRadarRight(360);
+    }
+
+    execute();
+}
 	
 	public void onScannedRobot(ScannedRobotEvent e) {
 
