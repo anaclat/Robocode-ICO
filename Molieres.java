@@ -125,6 +125,17 @@ public class Molieres extends AdvancedRobot {
 		back(50);
 	}
 
+	private void executarDefesa() {
+    if (getTime() - ultimoTickDefesa < 15) return; // Cooldown
+    ultimoTickDefesa = getTime();
+
+    moveDirection *= -1; // Inverte direção
+    double angulo = 60 + Math.random() * 60; // Ângulo entre 60 e 120 graus
+    setTurnRight(angulo);
+    setAhead(120 + Math.random() * 80); // Avança entre 120 e 200
+}
+
+
 	/**
 	 * onWin:  Do a victory dance
 	 */
