@@ -10,11 +10,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Molieres extends AdvancedRobot {
-	int count = 0; // Keeps track of how long we've
-	// been searching for our target
-	double gunTurnAmt; // How much to turn our gun when searching
-	String trackName; // Name of the robot we're currently tracking
-
+    private int moveDirection = 1;
+    private double energiaAnterior = 100;
+    private long ultimoTickDefesa = 0;
+	
 	/**
 	 * run:  Tracker's main run function
 	 */
