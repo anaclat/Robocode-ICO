@@ -13,10 +13,11 @@ public class Molieres extends AdvancedRobot {
     private int moveDirection = 1;
     private double energiaAnterior = 100;
     private long ultimoTickDefesa = 0;
-	
-	/**
-	 * run:  Tracker's main run function
-	 */
+
+    private Map<String, Inimigo> inimigos = new HashMap<>();
+    private String alvoAtual = null;
+    private static final double DISTANCIA_MAX_FOGO = 350.0;
+
 	public void run() {
 		// Set colors
 		setBodyColor(new Color(128, 128, 50));
