@@ -55,12 +55,14 @@ public class Molieres extends AdvancedRobot {
             setTurnRadarRight(Utils.normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading())));
         }
 
+        // --- Detecção de Tiro e Evasiva Reativa ---
         double perdaEnergia = energiaAnterior - e.getEnergy();
-        if (perdaEnergia > 0 && perdaEnergia <= 3.0) {
-            // Lógica de defesa virá em um commit futuro (aqui ou no próximo)
+        if (perdaEnergia > 0 && perdaEnergia <= 3.0) { 
+            executarDefesa();
         }
         energiaAnterior = e.getEnergy();
 
+        // --- Movimentação Lateral Contínua ---
         double anguloMovimento = Utils.normalRelativeAngleDegrees(e.getBearing() + 90 - (15 * moveDirection));
         setTurnRight(anguloMovimento);
         setAhead(100 * moveDirection);
@@ -128,13 +130,13 @@ public class Molieres extends AdvancedRobot {
     }
 
     private void executarDefesa() {
-        if (getTime() - ultimoTickDefesa < 15) return;
+        if (getTime() - ultimoTickDefesa < 20) return;
         ultimoTickDefesa = getTime();
 
         moveDirection *= -1;
-        double angulo = 60 + Math.random() * 60; 
-        setTurnRight(angulo);
-        setAhead(120 + Math.random() * 80);
+        double angulo = 90 + (Math.random() * 90); 
+        setTurnRight(angulo * moveDirection); 
+        setAhead(150 + Math.random() * 100); 
     }
 
     @Override
