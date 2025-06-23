@@ -13,52 +13,57 @@ public class Molieres extends AdvancedRobot {
     private int moveDirection = 1;
     private double energiaAnterior = 100;
     private long ultimoTickDefesa = 0;
-  
+
     private Map<String, Inimigo> inimigos = new HashMap<>();
     private String alvoAtual = null;
     private static final double DISTANCIA_MAX_FOGO = 350.0;
 
-	public void run() {
-		
-		setColors(new Color(128, 0, 128), Color.DARK_GRAY, Color.BLACK); // Roxo, cinza e preto
+    public void run() {
+        setColors(new Color(128, 0, 128), Color.DARK_GRAY, Color.BLACK); // Roxo, cinza e preto
         setAdjustRadarForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
         setAdjustGunForRobotTurn(true);
-		
-	while (true) {
-    escanearInimigoMaisProximo();
 
-    if (alvoAtual != null) {
-        Inimigo alvo = inimigos.get(alvoAtual);
-        if (alvo == null || getTime() - alvo.ultimoVisto > 5) {
-            alvoAtual = null;
-        } else {
-            double radarTurn = getHeadingRadians() + alvo.anguloRelativo - getRadarHeadingRadians();
-            setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn) * 2);
+        while (true) {
+            escanearInimigoMaisProximo();
+
+            if (alvoAtual != null) {
+                Inimigo alvo = inimigos.get(alvoAtual);
+                if (alvo == null || getTime() - alvo.ultimoVisto > 5) {
+                    alvoAtual = null;
+                } else {
+                    double radarTurn = getHeadingRadians() + alvo.anguloRelativo - getRadarHeadingRadians();
+                    setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn) * 2);
+                }
+            } else {
+                setTurnRadarRight(360); // Radar contínuo se sem alvo
+            }
+
+            execute();
         }
-    } else {
-        setTurnRadarRight(360);
     }
 
-    execute();
-}
-	
-	public void onScannedRobot(ScannedRobotEvent e) {
+    public void onScannedRobot(ScannedRobotEvent e) {
+        // Atualiza dados do inimigo
+        String nome = e.getName();
+        Inimigo inimigo = inimigos.getOrDefault(nome, new Inimigo());
+        inimigo.atualizar(e);
+        inimigos.put(nome, inimigo);
+        escanearInimigoMaisProximo();
 
-
-	    // Detecta tiro e executa evasiva
+        // Detecta tiro e executa evasiva
         double perdaEnergia = energiaAnterior - e.getEnergy();
-        if (perdaEnergia > 0 && perdaEnergia <= 3.0) { 
+        if (perdaEnergia > 0 && perdaEnergia <= 3.0) {
             executarDefesa();
         }
         energiaAnterior = e.getEnergy();
 
-        // --- Movimentação Lateral Contínua ---
+        // Movimentação lateral
         double anguloMovimento = Utils.normalRelativeAngleDegrees(e.getBearing() + 90 - (15 * moveDirection));
         setTurnRight(anguloMovimento);
         setAhead(100 * moveDirection);
 
-        // --- Lógica de Mira Preditiva e Tiro Adaptativo ---
+        // Tiro adaptativo com previsão de posição
         if (e.getDistance() <= DISTANCIA_MAX_FOGO) {
             double firePower = calcularFirePowerAdaptativo(e.getDistance());
             double bulletSpeed = 20 - 3 * firePower;
@@ -69,6 +74,7 @@ public class Molieres extends AdvancedRobot {
 
             double enemyHeading = e.getHeadingRadians();
             double enemyVelocity = e.getVelocity();
+
             double predictedX = enemyX;
             double predictedY = enemyY;
             double deltaTime = 0;
@@ -96,56 +102,6 @@ public class Molieres extends AdvancedRobot {
         }
     }
 
-    @Override
-    public void onHitByBullet(HitByBulletEvent e) {
-        executarDefesa(); 
-
-    }
-
-    @Override
-    public void onHitRobot(HitRobotEvent e) {
-        if (trackName != null && !trackName.equals(e.getName())) {
-            out.println("Tracking " + e.getName() + " due to collision");
-        }
-        trackName = e.getName();
-        
-        gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
-        turnGunRight(gunTurnAmt);
-        fire(3);
-        back(50);
-    }
-
-    @Override
-    public void onHitWall(HitWallEvent e) { 
-        moveDirection *= -1; 
-        setBack(50);
-    }
-
-    private void executarDefesa() {
-        if (getTime() - ultimoTickDefesa < 20) return;
-        ultimoTickDefesa = getTime();
-
-        moveDirection *= -1;
-        double angulo = 90 + (Math.random() * 90); 
-        setTurnRight(angulo * moveDirection); 
-        setAhead(150 + Math.random() * 100); 
-    }
-
-    @Override
-    public void onWin(WinEvent e) {
-        for (int i = 0; i < 50; i++) {
-            turnRight(30);
-            turnLeft(30);
-        }
-
-    }
-    
-    private double calcularFirePowerAdaptativo(double distancia) { 
-        distancia = Math.min(distancia, DISTANCIA_MAX_FOGO);
-        double power = 4.0 - (2.9 * (distancia / DISTANCIA_MAX_FOGO));
-        return Math.max(0.1, Math.min(3.0, power));
-    }
-
     private void escanearInimigoMaisProximo() {
         double menorDistancia = Double.MAX_VALUE;
         String maisProximo = null;
@@ -155,61 +111,7 @@ public class Molieres extends AdvancedRobot {
             Map.Entry<String, Inimigo> entry = it.next();
             Inimigo i = entry.getValue();
 
-    @Override
-    public void onHitRobot(HitRobotEvent e) {
-        if (trackName != null && !trackName.equals(e.getName())) {
-            out.println("Tracking " + e.getName() + " due to collision");
-        }
-        trackName = e.getName();
-        gunTurnAmt = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
-        turnGunRight(gunTurnAmt);
-        fire(3);
-        moveDirection *= -1;
-        setBack(100);
-    }
-
-    @Override
-    public void onHitWall(HitWallEvent e) { 
-        moveDirection *= -1; 
-        setBack(50);
-        setTurnRight(90);
-    }
-
-    private void executarDefesa() {
-        if (getTime() - ultimoTickDefesa < 20) return;
-        ultimoTickDefesa = getTime();
-
-        moveDirection *= -1;
-        double angulo = 60 + Math.random() * 60;
-        setTurnRight(angulo * moveDirection);
-        setAhead(150 + Math.random() * 100);
-    }
-
-    @Override
-    public void onWin(WinEvent e) {
-        for (int i = 0; i < 50; i++) {
-            turnRight(30);
-            turnLeft(30);
-        }
-    }
-
-    private double calcularFirePowerAdaptativo(double distancia) { 
-        distancia = Math.min(distancia, DISTANCIA_MAX_FOGO);
-        double power = 4.0 - (2.9 * (distancia / DISTANCIA_MAX_FOGO));
-        return Math.max(0.1, Math.min(3.0, power));
-    }
-
-    private void escanearInimigoMaisProximo() {
-        double menorDistancia = Double.MAX_VALUE;
-        String maisProximo = null;
-
-        Iterator<Map.Entry<String, Inimigo>> it = inimigos.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Inimigo> entry = it.next();
-            Inimigo i = entry.getValue();
-
-
-            if (getTime() - i.ultimoVisto > 10) { 
+            if (getTime() - i.ultimoVisto > 10) {
                 it.remove();
                 continue;
             }
@@ -219,35 +121,58 @@ public class Molieres extends AdvancedRobot {
                 maisProximo = entry.getKey();
             }
         }
+
         alvoAtual = maisProximo;
     }
 
-    private double normalRelativeAngleDegrees(double angle) {
-        while (angle > 180) angle -= 360;
-        while (angle < -180) angle += 360;
-        return angle;
-    }
- }
-
-
-class Inimigo {
-    String nome; 
-    double distancia; 
-    double energia; 
-    double heading; 
-    double velocidade; 
-    long ultimoVisto; 
-
-    public Inimigo() {
-        
+    private double calcularFirePowerAdaptativo(double distancia) {
+        distancia = Math.min(distancia, DISTANCIA_MAX_FOGO);
+        double power = 4.0 - (2.9 * (distancia / DISTANCIA_MAX_FOGO));
+        return Math.max(0.1, Math.min(3.0, power));
     }
 
-    public void atualizar(ScannedRobotEvent e) {
-        this.nome = e.getName();
-        this.distancia = e.getDistance();
-        this.energia = e.getEnergy();
-        this.heading = e.getHeading();
-        this.velocidade = e.getVelocity();
-        this.ultimoVisto = e.getTime();
+    public void onHitByBullet(HitByBulletEvent e) {
+        executarDefesa();
+    }
+
+    public void onHitWall(HitWallEvent e) {
+        moveDirection *= -1;
+        setBack(50);
+        setTurnRight(90);
+    }
+
+    public void onHitRobot(HitRobotEvent e) {
+        alvoAtual = e.getName();
+        setTurnRadarRight(360);
+        double angle = Utils.normalRelativeAngleDegrees(e.getBearing());
+        setTurnGunRight(angle);
+        setFire(3);
+        moveDirection *= -1;
+        setBack(100);
+    }
+
+    private void executarDefesa() {
+        if (getTime() - ultimoTickDefesa < 15) return;
+        ultimoTickDefesa = getTime();
+
+        moveDirection *= -1;
+        double angulo = 60 + Math.random() * 60;
+        setTurnRight(angulo);
+        setAhead(120 + Math.random() * 80);
+    }
+
+    // Classe para guardar dados dos inimigos
+    static class Inimigo {
+        double energia;
+        double anguloRelativo;
+        double distancia;
+        long ultimoVisto;
+
+        void atualizar(ScannedRobotEvent e) {
+            this.energia = e.getEnergy();
+            this.anguloRelativo = e.getBearingRadians();
+            this.distancia = e.getDistance();
+            this.ultimoVisto = e.getTime();
+        }
     }
 }
