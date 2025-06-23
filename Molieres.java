@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Molieres extends AdvancedRobot {
+    private int moveDirection = 1;
     private double energiaAnterior = 100;
     private long ultimoTickDefesa = 0;
     private double moveDirection = 1;
@@ -42,6 +43,7 @@ public class Molieres extends AdvancedRobot {
 
     public void onScannedRobot(ScannedRobotEvent e) {
         // DEFESA: detecta tiro
+
         double perdaEnergia = energiaAnterior - e.getEnergy();
         if (perdaEnergia > 0 && perdaEnergia <= 3.0) {
             executarDefesa();
