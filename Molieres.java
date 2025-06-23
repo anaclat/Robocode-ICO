@@ -57,13 +57,50 @@ public class Molieres extends AdvancedRobot {
 
         double perdaEnergia = energiaAnterior - e.getEnergy();
         if (perdaEnergia > 0 && perdaEnergia <= 3.0) {
-            // Lógica de defesa virá em um commit futuro
+            // Lógica de defesa virá em um commit futuro (aqui ou no próximo)
         }
         energiaAnterior = e.getEnergy();
 
         double anguloMovimento = Utils.normalRelativeAngleDegrees(e.getBearing() + 90 - (15 * moveDirection));
         setTurnRight(anguloMovimento);
         setAhead(100 * moveDirection);
+
+        // --- Lógica de Mira Preditiva e Tiro Adaptativo ---
+        if (e.getDistance() <= DISTANCIA_MAX_FOGO) {
+            double firePower = calcularFirePowerAdaptativo(e.getDistance());
+            double bulletSpeed = 20 - 3 * firePower;
+
+            double absBearing = getHeadingRadians() + e.getBearingRadians();
+            double enemyX = getX() + e.getDistance() * Math.sin(absBearing);
+            double enemyY = getY() + e.getDistance() * Math.cos(absBearing);
+
+            double enemyHeading = e.getHeadingRadians();
+            double enemyVelocity = e.getVelocity();
+            double predictedX = enemyX;
+            double predictedY = enemyY;
+            double deltaTime = 0;
+
+            while ((++deltaTime) * bulletSpeed < Point2D.distance(getX(), getY(), predictedX, predictedY)) {
+                predictedX += Math.sin(enemyHeading) * enemyVelocity;
+                predictedY += Math.cos(enemyHeading) * enemyVelocity;
+
+                if (predictedX < 18.0 || predictedY < 18.0 ||
+                    predictedX > getBattleFieldWidth() - 18.0 ||
+                    predictedY > getBattleFieldHeight() - 18.0) {
+                    predictedX = Math.min(Math.max(18.0, predictedX), getBattleFieldWidth() - 18.0);
+                    predictedY = Math.min(Math.max(18.0, predictedY), getBattleFieldHeight() - 18.0);
+                    break;
+                }
+            }
+
+            double theta = Math.atan2(predictedX - getX(), predictedY - getY());
+            double ajuste = Utils.normalRelativeAngle(theta - getGunHeadingRadians());
+            setTurnGunRightRadians(ajuste);
+
+            if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 10) {
+                setFire(firePower);
+            }
+        }
     }
 
     @Override
@@ -109,7 +146,9 @@ public class Molieres extends AdvancedRobot {
     }
     
     private double calcularFirePowerAdaptativo(double distancia) { 
-        return 0.0; 
+        distancia = Math.min(distancia, DISTANCIA_MAX_FOGO);
+        double power = 4.0 - (2.9 * (distancia / DISTANCIA_MAX_FOGO));
+        return Math.max(0.1, Math.min(3.0, power));
     }
 
     private void escanearInimigoMaisProximo() {
