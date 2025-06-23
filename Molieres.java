@@ -1,24 +1,15 @@
-package sample;
+package myrobots;
 
-
-import robocode.HitRobotEvent;
-import robocode.Robot;
-import robocode.ScannedRobotEvent;
-import robocode.WinEvent;
-import static robocode.util.Utils.normalRelativeAngleDegrees;
+import robocode.*;
+import robocode.util.Utils;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-
-/**
- * Tracker - a sample robot by Mathew Nelson.
- * <p>
- * Locks onto a robot, moves close, fires when close.
- *
- * @author Mathew A. Nelson (original)
- * @author Flemming N. Larsen (contributor)
- */
-public class Tracker extends Robot {
+public class Molieres extends AdvancedRobot {
 	int count = 0; // Keeps track of how long we've
 	// been searching for our target
 	double gunTurnAmt; // How much to turn our gun when searching
