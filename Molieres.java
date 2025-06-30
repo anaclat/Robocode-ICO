@@ -236,4 +236,65 @@ public class Molieres extends AdvancedRobot {
                 turnRadarRightRadians(Double.POSITIVE_INFINITY);
         }
     }
+
+     public void onScannedRobot(ScannedRobotEvent e) {
+        corMolieres();
+        
+        if (getOthers() > 1) {
+            Robo inimigo = listaInimigos.get(e.getName());
+            if (inimigo == null) {
+                inimigo = new Robo();
+                listaInimigos.put(e.getName(), inimigo);
+            }
+            inimigo.anguloAbsolutoRadianos = e.getBearingRadians();
+            inimigo.setLocation(new Point2D.Double(
+                    meuRobo.x + e.getDistance() * Math.sin(getHeadingRadians() + inimigo.anguloAbsolutoRadianos),
+                    meuRobo.y + e.getDistance() * Math.cos(getHeadingRadians() + inimigo.anguloAbsolutoRadianos)));
+            inimigo.ultimaDirecao = inimigo.direcao;
+            inimigo.nome = e.getName();
+            inimigo.energia = e.getEnergy();
+            inimigo.vivo = true;
+            inimigo.tempoVarredura = getTime();
+            inimigo.velocidade = e.getVelocity();
+            inimigo.direcao = e.getHeadingRadians();
+            inimigo.pontuacaoDisparo = inimigo.energia < 25 ? (inimigo.energia < 5 ?
+                    (inimigo.energia == 0 ? Double.MIN_VALUE : inimigo.distance(meuRobo) * 0.1) :
+                    inimigo.distance(meuRobo) * 0.75) : inimigo.distance(meuRobo);
+            if (getOthers() == 1)
+                setTurnRadarLeftRadians(getRadarTurnRemainingRadians());
+            
+            if (!alvo.vivo || inimigo.pontuacaoDisparo < alvo.pontuacaoDisparo)
+                alvo = inimigo;
+        }
+        
+        else {
+            setScanColor(Color.red);
+            Robo inimigo = new Robo();
+            inimigo.anguloAbsolutoRadianos = getHeadingRadians() + e.getBearingRadians();
+            inimigo.distancia = e.getDistance();
+            inimigo.velocidade = e.getVelocity();
+            if (inimigo.velocidade != 0)
+                direcaoLateral = Utilitario.sinal(inimigo.velocidade * Math.sin(e.getHeadingRadians() - inimigo.anguloAbsolutoRadianos));
+            Onda onda = new Onda(this);
+            onda.posicaoCanhao = new Point2D.Double(getX(), getY());
+            Onda.posicaoAlvo = Utilitario.projetar(onda.posicaoCanhao, inimigo.anguloAbsolutoRadianos, inimigo.distancia);
+            onda.direcaoLateral = direcaoLateral;
+            onda.definirSegmentacoes(inimigo.distancia, inimigo.velocidade, velocidadeInimigoAnterior);
+            velocidadeInimigoAnterior = inimigo.velocidade;
+            onda.angulo = inimigo.anguloAbsolutoRadianos;
+            setTurnGunRightRadians(Utils.normalRelativeAngle(
+                    inimigo.anguloAbsolutoRadianos - getGunHeadingRadians() + onda.offsetAnguloMaisVisitado()));
+            POTENCIA_TIRO = Math.min(3, Math.min(this.getEnergy(), e.getEnergy()) / (double) 4);
+            onda.potenciaTiro = POTENCIA_TIRO;
+            if (getEnergy() < 2 && e.getDistance() < 500)
+                onda.potenciaTiro = 0.1;
+            else if (e.getDistance() >= 500)
+                onda.potenciaTiro = 1.1;
+            setFire(onda.potenciaTiro);
+            if (getEnergy() >= onda.potenciaTiro)
+                addCustomEvent(onda);
+            movimento1VS1.onScannedRobot(e);
+            setTurnRadarRightRadians(Utils.normalRelativeAngle(inimigo.anguloAbsolutoRadianos - getRadarHeadingRadians()) * 2);
+        }
+    }
 }
