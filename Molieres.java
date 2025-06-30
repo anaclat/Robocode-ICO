@@ -149,4 +149,29 @@ public class Molieres extends AdvancedRobot {
             return maisVisitado;
         }
     }
+    
+     static Random aleatorio = new Random();
+    
+    private void corMolieres() {
+        setColors(new Color(128, 0, 128),
+                new Color(128, 0, 128),
+                new Color(128, 0, 128),
+                new Color(128, 0, 128),
+                new Color(128, 0, 128));
+    }
+    
+    private void Cor() {
+        setColors(new Color(128, 0, 128),
+                new Color(128, 0, 128),
+                new Color(128, 0, 128),
+                new Color(128, 0, 128),
+                new Color(128, 0, 128));
+    }
+    
+    public void onWin(WinEvent event) {
+        while (true) {
+            Cor();
+            turnRadarRight(360);
+        }
+    }
 }
