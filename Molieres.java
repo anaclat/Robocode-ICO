@@ -375,4 +375,17 @@ public class Molieres extends AdvancedRobot {
             setTurnRightRadians(angulo);
         }
     }
+
+     public void atualizarListaPosicoes(int n) {
+        posicoesPossiveis.clear();
+        final int alcanceX = (int) (125 * 1.5);
+        for (int i = 0; i < n; i++) {
+            double modX = Utilitario.aleatorioEntre(-alcanceX, alcanceX);
+            double alcanceY = Math.sqrt(alcanceX * alcanceX - modX * modX);
+            double modY = Utilitario.aleatorioEntre(-alcanceY, alcanceY);
+            double y = Utilitario.limitar(meuRobo.y + modY, 75, campoBatalha.height - 75);
+            double x = Utilitario.limitar(meuRobo.x + modX, 75, campoBatalha.width - 75);
+            posicoesPossiveis.add(new Point2D.Double(x, y));
+        }
+    }
 }
