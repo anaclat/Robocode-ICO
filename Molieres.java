@@ -1,33 +1,41 @@
-package myrobots;
+package divas;
+
+import java.awt.Color;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.*;
 
 import robocode.*;
 import robocode.util.Utils;
 
-import java.awt.*;
-import java.awt.geom.Point2D;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 public class Molieres extends AdvancedRobot {
-
-    private int moveDirection = 1;
-    private double energiaAnterior = 100;
-    private long ultimoTickDefesa = 0;
-
-    private Map<String, Inimigo> inimigos = new HashMap<>();
-    private String alvoAtual = null;
-    private static final double DISTANCIA_MAX_FOGO = 350.0;
-
-	public void run() {
-		
-		setBodyColor(new Color(128, 128, 50));
-		setGunColor(new Color(50, 50, 20));
-		setRadarColor(new Color(200, 200, 70));
-		setScanColor(Color.white);
-		setBulletColor(Color.blue);
-
-		
+    static double POTENCIA_TIRO = 3;
+    
+    // Configurações iniciais
+    public void run() {
+        mudarCor(); // Configura cor roxa
+        setAdjustGunForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);
+        
+        // Inicialização básica
+        if (getOthers() > 1) {
+            setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
+            while (true) {
+                execute();
+            }
+        } else {
+            while (true) {
+                turnRadarRightRadians(Double.POSITIVE_INFINITY);
+            }
+        }
+    }
+    
+    private void mudarCor() {
+        setColors(new Color(128, 0, 128), new Color(128, 0, 128),
+                new Color(128, 0, 128), new Color(128, 0, 128),
+                new Color(128, 0, 128));
+    }
+}
 		trackName = null; 
 		setAdjustGunForRobotTurn(true); 
 		gunTurnAmt = 10; 
