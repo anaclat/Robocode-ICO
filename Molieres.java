@@ -48,5 +48,40 @@ public class Molieres extends AdvancedRobot {
         }
     }
 
-    
+    class Movimento_1VS1 {
+        private static final double LARGURA_CAMPO = 800;
+        private static final double ALTURA_CAMPO = 600;
+        private static final double TEMPO_MAX_TENTATIVA = 125;
+        private static final double AJUSTE_REVERSA = 0.421075;
+        private static final double EVASAO_PADRAO = 1.2;
+        private static final double AJUSTE_QUIQUE_PAREDE = 0.699484;
+        private final AdvancedRobot robô;
+        private final Rectangle2D areaDisparo = new Rectangle2D.Double(MARGEM_PAREDE, MARGEM_PAREDE,
+                LARGURA_CAMPO - MARGEM_PAREDE * 2, ALTURA_CAMPO - MARGEM_PAREDE * 2);
+        private double direcao = 0.4;
+        
+        Movimento_1VS1(AdvancedRobot _robô) {
+            this.robô = _robô;
+        }
+        
+        public void onScannedRobot(ScannedRobotEvent e) {
+            Robo inimigo = new Robo();
+            inimigo.anguloAbsolutoRadianos = robô.getHeadingRadians() + e.getBearingRadians();
+            inimigo.distancia = e.getDistance();
+            Point2D posicaoRobo = new Point2D.Double(robô.getX(), robô.getY());
+            Point2D posicaoInimigo = Utilitario.projetar(posicaoRobo, inimigo.anguloAbsolutoRadianos, inimigo.distancia);
+            Point2D destinoRobo;
+            double tempoTentativa = 0;
+            while (!areaDisparo.contains(destinoRobo = Utilitario.projetar(posicaoInimigo, inimigo.anguloAbsolutoRadianos + Math.PI + direcao,
+                    inimigo.distancia * (EVASAO_PADRAO - tempoTentativa / 100.0))) && tempoTentativa < TEMPO_MAX_TENTATIVA)
+                tempoTentativa++;
+            if ((Math.random() < (Rules.getBulletSpeed(POTENCIA_TIRO) / AJUSTE_REVERSA) / inimigo.distancia ||
+                    tempoTentativa > (inimigo.distancia / Rules.getBulletSpeed(POTENCIA_TIRO) / AJUSTE_QUIQUE_PAREDE)))
+                direcao = -direcao;
+            double angulo = Utilitario.anguloAbsoluto(posicaoRobo, destinoRobo) - robô.getHeadingRadians();
+            robô.setAhead(Math.cos(angulo) * 100);
+            robô.setTurnRightRadians(Math.tan(angulo));
+        }
+    }
+
 }
