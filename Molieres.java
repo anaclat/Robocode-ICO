@@ -191,4 +191,49 @@ public class Molieres extends AdvancedRobot {
     {
         movimento1VS1 = new Movimento_1VS1(this);
     }
+
+    public void run() {
+        campoBatalha.height = getBattleFieldHeight();
+        campoBatalha.width = getBattleFieldWidth();
+        meuRobo.x = getX();
+        meuRobo.y = getY();
+        meuRobo.energia = getEnergy();
+        pontoAlvo.x = meuRobo.x;
+        pontoAlvo.y = meuRobo.y;
+        alvo = new Robo();
+        alvo.vivo = false;
+        setAdjustGunForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);
+        if (getOthers() > 1) {
+            atualizarListaPosicoes(QUANTIDADE_PONTOS_PREVISTOS);
+            setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
+            while (true) {
+                meuRobo.ultimaDirecao = meuRobo.direcao;
+                meuRobo.direcao = getHeadingRadians();
+                meuRobo.x = getX();
+                meuRobo.y = getY();
+                meuRobo.energia = getEnergy();
+                meuRobo.anguloCanhaoRadianos = getGunHeadingRadians();
+                Iterator<Robo> iteradorInimigos = listaInimigos.values().iterator();
+                while (iteradorInimigos.hasNext()) {
+                    Robo r = iteradorInimigos.next();
+                    if (getTime() - r.tempoVarredura > 25) {
+                        r.vivo = false;
+                        if (alvo.nome != null && r.nome.equals(alvo.nome))
+                            alvo.vivo = false;
+                    }
+                }
+                movimento();
+                if (alvo.vivo)
+                    disparar();
+                execute();
+            }
+        }
+        else {
+            direcaoLateral = 1;
+            velocidadeInimigoAnterior = 0;
+            while (true)
+                turnRadarRightRadians(Double.POSITIVE_INFINITY);
+        }
+    }
 }
