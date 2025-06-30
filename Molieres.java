@@ -84,4 +84,69 @@ public class Molieres extends AdvancedRobot {
         }
     }
 
+    static class Onda extends Condition {
+        static Point2D posicaoAlvo;
+        double potenciaTiro;
+        Point2D posicaoCanhao;
+        double angulo;
+        double direcaoLateral;
+        private static final double DISTANCIA_MAXIMA = 900;
+        private static final int INDICES_DISTANCIA = 5;
+        private static final int INDICES_VELOCIDADE = 5;
+        private static final int BINS = 25;
+        private static final int BIN_CENTRAL = (BINS - 1) / 2;
+        private static final double ANGULO_ESCAPE_MAXIMO = 0.7;
+        private static final double LARGURA_BIN = ANGULO_ESCAPE_MAXIMO / (double) BIN_CENTRAL; 
+        private static final int[][][][] buffersEstatisticos = new int[INDICES_DISTANCIA][INDICES_VELOCIDADE][INDICES_VELOCIDADE][BINS];
+        private int[] buffer;
+        private double distanciaPercorrida;
+        private final AdvancedRobot robô;
+        
+        Onda(AdvancedRobot _robô) {
+            this.robô = _robô;
+        }
+        
+        public boolean test() {
+            avancar();
+            if (chegou()) {
+                buffer[binAtual()]++;
+                robô.removeCustomEvent(this);
+            }
+            return false;
+        }
+        
+        double offsetAnguloMaisVisitado() {
+            return (direcaoLateral * LARGURA_BIN) * (binMaisVisitado() - BIN_CENTRAL);
+        }
+        
+        void definirSegmentacoes(double distancia, double velocidade, double ultimaVelocidade) {
+            int indiceDistancia = (int) (distancia / (DISTANCIA_MAXIMA / INDICES_DISTANCIA));
+            int indiceVelocidade = (int) Math.abs(velocidade / 2);
+            int indiceUltimaVelocidade = (int) Math.abs(ultimaVelocidade / 2);
+            buffer = buffersEstatisticos[indiceDistancia][indiceVelocidade][indiceUltimaVelocidade];
+        }
+        
+        private void avancar() {
+            distanciaPercorrida += Rules.getBulletSpeed(potenciaTiro);
+        }
+        
+        private boolean chegou() {
+            return distanciaPercorrida > posicaoCanhao.distance(posicaoAlvo) - MARGEM_PAREDE;
+        }
+        
+        private int binAtual() {
+            int bin = (int) Math.round(((Utils.normalRelativeAngle
+                    (Utilitario.anguloAbsoluto(posicaoCanhao, posicaoAlvo) - angulo)) /
+                    (direcaoLateral * LARGURA_BIN)) + BIN_CENTRAL);
+            return (int) Utilitario.limitar(bin, 0, BINS - 1);
+        }
+        
+        private int binMaisVisitado() {
+            int maisVisitado = BIN_CENTRAL;
+            for (int i = 0; i < BINS; i++)
+                if (buffer[i] > buffer[maisVisitado])
+                    maisVisitado = i;
+            return maisVisitado;
+        }
+    }
 }
