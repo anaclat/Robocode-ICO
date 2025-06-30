@@ -174,4 +174,21 @@ public class Molieres extends AdvancedRobot {
             turnRadarRight(360);
         }
     }
+
+    static final int QUANTIDADE_PONTOS_PREVISTOS = 150;
+    static final double MARGEM_PAREDE = 18;
+    HashMap<String, Robo> listaInimigos = new HashMap<>();
+    Robo meuRobo = new Robo();
+    Robo alvo;
+    List<Point2D.Double> posicoesPossiveis = new ArrayList<>();
+    Point2D.Double pontoAlvo = new Point2D.Double(60, 60);
+    Rectangle2D.Double campoBatalha = new Rectangle2D.Double();
+    int tempoInativo = 30;
+    private static double direcaoLateral;
+    private static double velocidadeInimigoAnterior;
+    private static Movimento_1VS1 movimento1VS1;
+    
+    {
+        movimento1VS1 = new Movimento_1VS1(this);
+    }
 }
