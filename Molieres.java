@@ -388,4 +388,33 @@ public class Molieres extends AdvancedRobot {
             posicoesPossiveis.add(new Point2D.Double(x, y));
         }
     }
+     public double avaliarPonto(Point2D.Double p) {
+        double valorRisco = Utilitario.aleatorioEntre(1, 2.25) / p.distanceSq(meuRobo);
+        valorRisco += (6 * (getOthers() - 1)) / p.distanceSq(campoBatalha.width / 2, campoBatalha.height / 2);
+        double fatorCanto = getOthers() <= 5 ? getOthers() == 1 ? 0.25 : 0.5 : 1;
+        valorRisco += fatorCanto / p.distanceSq(0, 0);
+        valorRisco += fatorCanto / p.distanceSq(campoBatalha.width, 0);
+        valorRisco += fatorCanto / p.distanceSq(0, campoBatalha.height);
+        valorRisco += fatorCanto / p.distanceSq(campoBatalha.width, campoBatalha.height);
+        if (alvo.vivo) {
+            double anguloRobo = Utils.normalRelativeAngle(Utilitario.anguloAbsoluto(p, alvo) - Utilitario.anguloAbsoluto(meuRobo, p));
+            Iterator<Robo> iteradorInimigos = listaInimigos.values().iterator();
+            while (iteradorInimigos.hasNext()) {
+                Robo inimigo = iteradorInimigos.next();
+                valorRisco += (inimigo.energia / meuRobo.energia) * (1 / p.distanceSq(inimigo)) * (1.0 + ((1 - (Math.abs(Math.sin(anguloRobo)))) +
+                        Math.abs(Math.cos(anguloRobo))) / 2) * (1 + Math.abs(Math.cos(Utilitario.anguloAbsoluto(meuRobo, p) - Utilitario.anguloAbsoluto(inimigo, p))));
+            }
+        }
+        else if (listaInimigos.values().size() >= 1) {
+            Iterator<Robo> iteradorInimigos = listaInimigos.values().iterator();
+            while (iteradorInimigos.hasNext()) {
+                Robo inimigo = iteradorInimigos.next();
+                valorRisco += (inimigo.energia / meuRobo.energia) * (1 / p.distanceSq(inimigo)) * (1 + Math.abs(Math.cos(Utilitario.anguloAbsoluto(meuRobo, p) - Utilitario.anguloAbsoluto(inimigo, p))));
+            }
+        }
+        else {
+            valorRisco += (1 + Math.abs(Utilitario.anguloAbsoluto(meuRobo, pontoAlvo) - getHeadingRadians()));
+        }
+        return valorRisco;
+    }
 }
