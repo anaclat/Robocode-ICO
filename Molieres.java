@@ -297,4 +297,52 @@ public class Molieres extends AdvancedRobot {
             setTurnRadarRightRadians(Utils.normalRelativeAngle(inimigo.anguloAbsolutoRadianos - getRadarHeadingRadians()) * 2);
         }
     }
+
+    public void onRobotDeath(RobotDeathEvent event) {
+        if (listaInimigos.containsKey(event.getName())) {
+            listaInimigos.get(event.getName()).vivo = false;
+        }
+        if (event.getName().equals(alvo.nome))
+            alvo.vivo = false;
+    }
+    
+    public void disparar() {
+        if (alvo != null && alvo.vivo) {
+            double distancia = meuRobo.distance(alvo);
+            double potencia = (distancia > 850 ? 0.1 : (distancia > 700 ? 0.5 : (distancia > 250 ? 2.0 : 3.0)));
+            potencia = Math.min(meuRobo.energia / 4d, Math.min(alvo.energia / 3d, potencia));
+            potencia = Utilitario.limitar(potencia, 0.1, 3.0);
+            long tempoAteAcerto;
+            Point2D.Double mirarEm = new Point2D.Double();
+            double direcao, deltaDirecao, velocidadeTiro;
+            double preverX, preverY;
+            preverX = alvo.getX();
+            preverY = alvo.getY();
+            direcao = alvo.direcao;
+            deltaDirecao = direcao - alvo.ultimaDirecao;
+            mirarEm.setLocation(preverX, preverY);
+            tempoAteAcerto = 0;
+            do {
+                preverX += Math.sin(direcao) * alvo.velocidade;
+                preverY += Math.cos(direcao) * alvo.velocidade;
+                direcao += deltaDirecao;
+                tempoAteAcerto++;
+                Rectangle2D.Double areaDisparo = new Rectangle2D.Double(MARGEM_PAREDE, MARGEM_PAREDE,
+                        campoBatalha.width - MARGEM_PAREDE, campoBatalha.height - MARGEM_PAREDE);
+                if (!areaDisparo.contains(preverX, preverY)) {
+                    velocidadeTiro = mirarEm.distance(meuRobo) / tempoAteAcerto;
+                    potencia = Utilitario.limitar((20 - velocidadeTiro) / 3.0, 0.1, 3.0);
+                    break;
+                }
+                mirarEm.setLocation(preverX, preverY);
+            } while ((int) Math.round((mirarEm.distance(meuRobo) - MARGEM_PAREDE) / Rules.getBulletSpeed(potencia)) > tempoAteAcerto);
+            mirarEm.setLocation(Utilitario.limitar(preverX, 34, getBattleFieldWidth() - 34),
+                    Utilitario.limitar(preverY, 34, getBattleFieldHeight() - 34));
+            if ((getGunHeat() == 0.0) && (getGunTurnRemaining() == 0.0) && (potencia > 0.0) && (meuRobo.energia > 0.1)) {
+                setFire(potencia);
+            }
+            setTurnGunRightRadians(Utils.normalRelativeAngle(((Math.PI / 2) - Math.atan2(mirarEm.y - meuRobo.getY(),
+                    mirarEm.x - meuRobo.getX())) - getGunHeadingRadians()));
+        }
+    }
 }
