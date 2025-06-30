@@ -345,4 +345,34 @@ public class Molieres extends AdvancedRobot {
                     mirarEm.x - meuRobo.getX())) - getGunHeadingRadians()));
         }
     }
+
+     public void movimento() {
+        if (pontoAlvo.distance(meuRobo) < 15 || tempoInativo > 25) {
+            tempoInativo = 0;
+            atualizarListaPosicoes(QUANTIDADE_PONTOS_PREVISTOS);
+            Point2D.Double pontoMenorRisco = null;
+            double menorRisco = Double.MAX_VALUE;
+            for (Point2D.Double p : posicoesPossiveis) {
+                double riscoAtual = avaliarPonto(p);
+                if (riscoAtual <= menorRisco || pontoMenorRisco == null) {
+                    menorRisco = riscoAtual;
+                    pontoMenorRisco = p;
+                }
+            }
+            pontoAlvo = pontoMenorRisco;
+        }
+        else {
+            tempoInativo++;
+            double angulo = Utilitario.anguloAbsoluto(meuRobo, pontoAlvo) - getHeadingRadians();
+            double direcao = 1;
+            if (Math.cos(angulo) < 0) {
+                angulo += Math.PI;
+                direcao *= -1;
+            }
+            setMaxVelocity(10 - (4 * Math.abs(getTurnRemainingRadians())));
+            setAhead(meuRobo.distance(pontoAlvo) * direcao);
+            angulo = Utils.normalRelativeAngle(angulo);
+            setTurnRightRadians(angulo);
+        }
+    }
 }
